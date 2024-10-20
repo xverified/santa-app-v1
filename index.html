@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <script src="https://cdn.logwork.com/widget/countdown.js"></script>
+    <style>
+        /* Background color */
+        body {
+            background-color: #FF9900;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Center the countdown timer */
+        .countdown-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Slick Carousel Styling */
+        .carousel {
+            width: 90%;
+            margin: 20px auto;
+        }
+
+        .carousel img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .carousel .slick-slide {
+            text-align: center;
+        }
+
+        /* Center-align offers */
+        .offer_holder {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        .offer_holder a {
+            display: inline-block;
+            margin: 10px 0;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Countdown Timer Styling */
+        .countdown-timer {
+            color: black !important; /* Change digit color to black */
+        }
+    </style>
+</head>
+<body>
+    <!-- Countdown Timer -->
+    <div class="countdown-container">
+        <a href="https://logwork.com/countdown-timer" class="countdown-timer" data-style="circles" data-timezone="Africa/Accra" data-date="" id="countdown-text">WIN AMAZING PRIZES!</a>
+    </div>
+
+    <!-- Image Carousel -->
+    <div class="carousel">
+        <div><img src="images/iphone-sweepstakes.jpg" alt="iPhone Sweepstakes"></div>
+        <div><img src="images/vacation-giveaway.jpg" alt="Vacation Giveaway"></div>
+        <div><img src="images/laptop-sweepstakes.jpg" alt="Laptop Sweepstakes"></div>
+        <div><img src="images/gift-card-giveaway.jpg" alt="Gift Card Giveaway"></div>
+        <div><img src="images/netflix-access.jpg" alt="Free NETFLIX Access"></div>
+    </div>
+
+    <div class="offer_holder">Loading Offers...</div>
+    <div class="loading-spinner"></div>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            // Initialize the Slick Carousel
+            $('.carousel').slick({
+                infinite: true,
+                slidesToShow: 1,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 3000,
+                arrows: true,
+                dots: true,
+                responsive: [
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1,
+                            arrows: false,
+                            dots: true
+                        }
+                    }
+                ]
+            });
+
+            // Sanitize External Content
+            function sanitizeHTML(input) {
+                var element = document.createElement('div');
+                element.innerText = input;
+                return element.innerHTML;
+            }
+
+            var $offerHolder = $(".offer_holder");
+            var $loadingSpinner = $(".loading-spinner");
+
+            $loadingSpinner.show(); // Show spinner during loading
+
+            $.getJSON("https://www.cpagrip.com/common/offer_feed_json.php?user_id=389464&pubkey=6602ea563a3bbd17fec213b6c1cf1893")
+                .done(function(json_data) {
+                    var offer_text = '';
+                    $.each(json_data.offers, function(key, offer) {
+                        offer.offerlink = offer.offerlink.replace('www.cpagrip.com','motifiles.com');
+                        var sanitizedTitle = sanitizeHTML(offer.title);
+                        offer_text += '<a href="'+ sanitizeHTML(offer.offerlink) +'" target="_blank" class="offer_item" aria-label="Offer link">'+ sanitizedTitle +'</a><br/>';
+                    });
+                    $offerHolder.html(offer_text);
+                })
+                .fail(function() {
+                    $offerHolder.text('Failed to load offers. Please try again later.');
+                })
+                .always(function() {
+                    $loadingSpinner.hide(); // Hide spinner after loading
+                });
+
+            // Auto-translate "WIN AMAZING PRIZES!" based on user's language
+            const translations = {
+                "fr": "GAGNEZ DES PRIX INCROYABLES!",
+                "es": "¡GANA PREMIOS INCREÍBLES!",
+                "de": "GEWINNEN SIE TOLLE PREISE!",
+                "it": "VINCI PREMI FANTASTICI!",
+                "pt": "GANHE PRÊMIOS INCRÍVEIS!",
+                "en": "WIN AMAZING PRIZES!"
+            };
+
+            const labels = {
+                "fr": { days: "Jours", hours: "Heures", minutes: "Minutes", seconds: "Secondes" },
+                "es": { days: "Días", hours: "Horas", minutes: "Minutos", seconds: "Segundos" },
+                "de": { days: "Tage", hours: "Stunden", minutes: "Minuten", seconds: "Sekunden" },
+                "it": { days: "Giorni", hours: "Ore", minutes: "Minuti", seconds: "Secondi" },
+                "pt": { days: "Dias", hours: "Horas", minutes: "Minutos", seconds: "Segundos" },
+                "en": { days: "Days", hours: "Hours", minutes: "Minutes", seconds: "Seconds" }
+            };
+
+            const userLang = navigator.language.slice(0, 2);
+            const translatedText = translations[userLang] || translations["en"];
+            const labelTexts = labels[userLang] || labels["en"];
+
+            document.getElementById("countdown-text").innerText = translatedText;
+
+            // Set up the countdown timer with translated labels
+            $(".countdown-timer").attr("data-labels", labelTexts.days + "," + labelTexts.hours + "," + labelTexts.minutes + "," + labelTexts.seconds);
+
+            // Reset the countdown date to the last day of the current month
+            const now = new Date();
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const formattedDate = lastDay.toISOString().slice(0, 10) + " 23:59";
+            document.querySelector(".countdown-timer").setAttribute("data-date", formattedDate);
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+</body>
+</html>
